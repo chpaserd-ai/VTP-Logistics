@@ -1,0 +1,1612 @@
+[file content begin]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Shipment - SmartTrack</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-dark: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #17a2b8;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --text: #212529;
+      --text-light: #6c757d;
+      --border: #dee2e6;
+      --background: #ffffff;
+      --surface: #f8f9fa;
+      --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Phetsarath OT, Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 1rem 0;
+      box-shadow: var(--shadow-lg);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      height: 70px;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: white;
+    }
+
+    .logo-container:hover {
+      opacity: 0.9;
+    }
+
+    header h1 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Navigation */
+    .main-nav {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background 0.3s;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Language Selector */
+    .language-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .lang-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.875rem;
+    }
+
+    .lang-btn.active {
+      background: rgba(255, 255, 255, 0.4);
+      font-weight: bold;
+    }
+
+    /* Main Content */
+    .main-container {
+      margin-top: 100px;
+      padding-bottom: 2rem;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .page-title .icon {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .page-title h2 {
+      margin: 0;
+      color: var(--dark);
+    }
+
+    /* Card Styles */
+    .card {
+      background: var(--background);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1.5rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-header .icon {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .card-header h2, .card-header h3 {
+      margin: 0;
+      color: var(--dark);
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    label.required::after {
+      content: " *";
+      color: var(--danger);
+    }
+
+    input, select, textarea {
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 1rem;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    input:read-only {
+      background-color: var(--light);
+      cursor: not-allowed;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--light);
+    }
+
+    /* Customer Details */
+    .customer-details {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    /* Invoice Items */
+    .invoice-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .invoice-item input {
+      flex: 1;
+    }
+
+    /* Item Table */
+    .item-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .item-table th {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .item-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .item-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .item-table input, .item-table select {
+      width: 100%;
+    }
+
+    /* Summary */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .summary-item {
+      background: var(--background);
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .summary-label {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+    }
+
+    /* Barcode Container */
+    .barcode-container {
+      text-align: center;
+      padding: 2rem;
+      background: var(--surface);
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      box-shadow: var(--shadow);
+    }
+
+    .barcode-details {
+      margin-top: 1.5rem;
+      text-align: left;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .barcode-field {
+      display: flex;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .barcode-label {
+      font-weight: bold;
+      min-width: 140px;
+    }
+
+    .barcode-value {
+      flex: 1;
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background-color: var(--success);
+    }
+
+    .notification.error {
+      background-color: var(--danger);
+    }
+
+    .notification.warning {
+      background-color: var(--warning);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--dark);
+      color: white;
+      text-align: center;
+      padding: 1.5rem 0;
+      margin-top: 2rem;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      display: none;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--light);
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        height: auto;
+      }
+      
+      .main-container {
+        margin-top: 140px;
+      }
+      
+      .user-info {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .main-nav {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .barcode-field {
+        flex-direction: column;
+      }
+      
+      .barcode-label {
+        min-width: auto;
+        margin-bottom: 0.25rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav-link {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+      
+      .card-header, .card-body {
+        padding: 1rem;
+      }
+      
+      .logo-container h1 {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <a href="index.html" class="logo-container">
+        <i class="fas fa-shipping-fast"></i>
+        <h1>VTP Logistics</h1>
+      </a>
+      
+      <div class="user-info">
+        <div class="language-selector">
+          <button class="lang-btn active" onclick="changeLanguage('en', this)">EN</button>
+          <button class="lang-btn" onclick="changeLanguage('lo', this)">LA</button>
+        </div>
+        
+        <div class="user-details">
+          <span class="user-name" id="displayUsername">Admin</span>
+          <span class="user-role" id="displayUserRole">Administrator</span>
+        </div>
+        
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="main-nav container" style="margin-top: 70px;">
+    <a href="index.html" class="nav-link">
+      <i class="fas fa-tachometer-alt"></i> <span data-i18n="dashboard">Dashboard</span>
+    </a>
+    <a href="create-shipment.html" class="nav-link active">
+      <i class="fas fa-plus-circle"></i> <span data-i18n="create_shipment">Create Shipment</span>
+    </a>
+    <a href="track-shipment.html" class="nav-link">
+      <i class="fas fa-search"></i> <span data-i18n="track_shipment">Track Shipment</span>
+    </a>
+    <a href="customer-management.html" class="nav-link">
+      <i class="fas fa-users-cog"></i> <span data-i18n="customer_management">Customer Management</span>
+    </a>
+    <a href="reports-status.html" class="nav-link">
+      <i class="fas fa-chart-bar"></i> <span data-i18n="reports_status">Reports & Status</span>
+    </a>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container main-container">
+    <div class="page-header">
+      <div class="page-title">
+        <div class="icon"><i class="fas fa-box"></i></div>
+        <h2 data-i18n="create_new_shipment">Create New Shipment</h2>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <!-- Customer Search -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="customerCode" class="required" data-i18n="customer_code">Customer Code</label>
+            <input type="text" id="customerCode" placeholder="Enter customer code" list="customerCodes" required>
+            <datalist id="customerCodes">
+              <!-- Customer options will be populated here -->
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn btn-outline" onclick="loadCustomerDetails()">
+              <i class="fas fa-search"></i> <span data-i18n="load_customer">Load Customer</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Customer Details -->
+        <div id="customerDetails" class="customer-details" style="display: none;">
+          <h4><i class="fas fa-user"></i> <span data-i18n="customer_information">Customer Information</span></h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label data-i18n="name">Name</label>
+              <input type="text" id="customerNameDisplay" readonly>
+            </div>
+            <div class="form-group">
+              <label data-i18n="mobile">Mobile</label>
+              <input type="text" id="customerMobileDisplay" readonly>
+            </div>
+            <div class="form-group">
+              <label data-i18n="address">Address</label>
+              <input type="text" id="customerAddressDisplay" readonly>
+            </div>
+            <div class="form-group">
+              <label data-i18n="contact_person">Contact Person</label>
+              <input type="text" id="customerContactDisplay" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Information -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="shipmentNo" class="required" data-i18n="shipment_number">Shipment Number *</label>
+            <input type="text" id="shipmentNo" placeholder="SHIP-001" onchange="generateShipmentId()" required>
+          </div>
+        </div>
+
+        <!-- Auto-generated Shipment ID -->
+        <div class="form-group">
+          <label for="shipmentIdDisplay" data-i18n="shipment_id">Shipment ID (Auto-generated)</label>
+          <input type="text" id="shipmentIdDisplay" readonly>
+        </div>
+
+        <!-- Invoices Section -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <div class="icon"><i class="fas fa-file-invoice"></i></div>
+              <h3 data-i18n="invoices_in_shipment">Invoices in Shipment</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="invoicesContainer">
+              <div class="invoice-item">
+                <input type="text" class="invoice-input" placeholder="Invoice Number (e.g., INV-001)" required>
+                <button class="btn btn-danger" onclick="removeInvoice(this)"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+            <button class="btn btn-outline" onclick="addInvoice()">
+              <i class="fas fa-plus"></i> <span data-i18n="add_another_invoice">Add Another Invoice</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Packing Information -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <div class="icon"><i class="fas fa-clipboard-list"></i></div>
+              <h3 data-i18n="packing_details">Packing Details</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="packerName" data-i18n="packer_name">Packer Name</label>
+                <input type="text" id="packerName" placeholder="Who packed this shipment">
+              </div>
+              <div class="form-group">
+                <label for="deliverName" data-i18n="deliver_name">Deliver Name</label>
+                <input type="text" id="deliverName" placeholder="Who will deliver">
+              </div>
+              <div class="form-group">
+                <label for="salesName" data-i18n="sales_representative">Sales Representative</label>
+                <input type="text" id="salesName" placeholder="Sales person name">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Section -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <div class="icon"><i class="fas fa-boxes"></i></div>
+              <h3 data-i18n="items_in_shipment">Items in Shipment</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <table class="item-table">
+              <thead>
+                <tr>
+                  <th data-i18n="item_name">Item Name</th>
+                  <th data-i18n="quantity">Quantity</th>
+                  <th data-i18n="box_type">Box Type</th>
+                  <th data-i18n="pack_size">Pack Size</th>
+                  <th data-i18n="actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="itemsTable">
+                <!-- Items will be added here dynamically -->
+              </tbody>
+            </table>
+            <button class="btn btn-outline" onclick="addItem()">
+              <i class="fas fa-plus"></i> <span data-i18n="add_item">Add Item</span>
+            </button>
+
+            <!-- Summary -->
+            <div class="summary-grid">
+              <div class="summary-item">
+                <div class="summary-value" id="totalItems">0</div>
+                <div class="summary-label" data-i18n="total_items">Total Items</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" id="totalQuantity">0</div>
+                <div class="summary-label" data-i18n="total_quantity">Total Quantity</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping Details -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <div class="icon"><i class="fas fa-truck"></i></div>
+              <h3 data-i18n="shipping_information">Shipping Information</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="carrier" data-i18n="carrier">Carrier</label>
+                <select id="carrier">
+                  <option value="">Select Carrier</option>
+                  <option value="VTP">VTP</option>
+                  <option value="KP">KP</option>
+                  <option value="HAL">HAL</option>
+                  <option value="Mixay">Mixay</option>
+                  <option value="Anousith">Anousith</option>
+                  <option value="Idea">Idea</option>
+                  <option value="Bus">Bus</option>
+                  <option value="Van">Van</option>
+                  <option value="Plane">Plane</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="estDelivery" data-i18n="estimated_delivery">Estimated Delivery</label>
+                <input type="datetime-local" id="estDelivery">
+              </div>
+              <div class="form-group">
+                <label for="shippingCost" data-i18n="shipping_cost">Shipping Cost</label>
+                <div style="display: flex; gap: 0.5rem;">
+                  <input type="number" id="shippingCost" step="0.01" placeholder="0.00" min="0" style="flex: 1;">
+                  <select id="shippingCurrency" style="width: 100px;">
+                    <option value="LAK">LAK</option>
+                    <option value="USD">USD</option>
+                    <option value="THB">THB</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button class="btn btn-primary" onclick="createManualShipment()" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+          <i class="fas fa-rocket"></i> <span data-i18n="create_shipment_generate_barcode">Create Shipment & Generate Barcode</span>
+        </button>
+        
+        <!-- Result -->
+        <div id="newShipmentResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2025 ເຄື່ອງມືຕິດຕາມການຂົນສົ່ງ</p>
+    </div>
+  </footer>
+
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <script>
+    // Check authentication
+    function checkAuth() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const username = localStorage.getItem('username');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!isLoggedIn || isLoggedIn !== 'true') {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Display user info
+      document.getElementById('displayUsername').textContent = username || 'User';
+      document.getElementById('displayUserRole').textContent = userRole || 'User';
+    }
+
+    // Logout function - PRESERVES DATA
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        // Only clear authentication data
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('lastLogin');
+        
+        // Redirect to login page
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Language Management
+    let currentLanguage = 'en';
+    
+    const translations = {
+      en: {
+        // Navigation
+        dashboard: "Dashboard",
+        create_shipment: "Create Shipment",
+        track_shipment: "Track Shipment",
+        customer_management: "Customer Management",
+        reports_status: "Reports & Status",
+        
+        // Create Shipment Tab
+        create_new_shipment: "Create New Shipment",
+        customer_code: "Customer Code",
+        load_customer: "Load Customer",
+        customer_information: "Customer Information",
+        name: "Name",
+        mobile: "Mobile",
+        address: "Address",
+        contact_person: "Contact Person",
+        shipment_number: "Shipment Number",
+        shipment_id: "Shipment ID (Auto-generated)",
+        invoices_in_shipment: "Invoices in Shipment",
+        add_another_invoice: "Add Another Invoice",
+        packing_details: "Packing Details",
+        packer_name: "Packer Name",
+        deliver_name: "Deliver Name",
+        sales_representative: "Sales Representative",
+        items_in_shipment: "Items in Shipment",
+        item_name: "Item Name",
+        quantity: "Quantity",
+        box_type: "Box Type",
+        pack_size: "Pack Size",
+        actions: "Actions",
+        add_item: "Add Item",
+        total_items: "Total Items",
+        total_quantity: "Total Quantity",
+        shipping_information: "Shipping Information",
+        carrier: "Carrier",
+        estimated_delivery: "Estimated Delivery",
+        shipping_cost: "Shipping Cost",
+        create_shipment_generate_barcode: "Create Shipment & Generate Barcode",
+      },
+      lo: {
+        // Navigation
+        dashboard: "ແຜງປັດຄວມງານ",
+        create_shipment: "ສ້າງລາຍການຂົນສົ່ງ",
+        track_shipment: "ຕິດຕາມການຂົນສົ່ງ",
+        customer_management: "ການຈັດການລູກຄ້າ",
+        reports_status: "ລາຍງານ & ສະຖານະສິນຄ້າ",
+        
+        // Create Shipment Tab
+        create_new_shipment: "ສ້າງລາຍການຂົນສົ່ງໃໝ່",
+        customer_code: "ລະຫັດລູກຄ້າ",
+        load_customer: "ໂຫຼດຂໍ້ມູນລູກຄ້າ",
+        customer_information: "ຂໍ້ມູນລູກຄ້າ",
+        name: "ຊື່",
+        mobile: "ເບີໂທ",
+        address: "ບ່ອນຢູ່",
+        contact_person: "ບຸກຄົນຕິດຕໍ່",
+        shipment_number: "ເລກທີຂົນສົ່ງ",
+        shipment_id: "ເລກລະຫັດຂົນສົ່ງ (ສ້າງໂດຍອັດຕະໂນມັດ)",
+        invoices_in_shipment: "ໃບເກັບເງິນໃນການຂົນສົ່ງ",
+        add_another_invoice: "ເພີ່ມໃບເກັບເງິນອື່ນໆ",
+        packing_details: "ລາຍລະອຽດການແພັກ",
+        packer_name: "ຊື່ຜູ້ແພັກ",
+        deliver_name: "ຊື່ຜູ້ຈັດສົ່ງ",
+        sales_representative: "ຊື່ພະນັກງານຂາຍ",
+        items_in_shipment: "ສິນຄ້າໃນການຂົນສົ່ງ",
+        item_name: "ຊື່ສິນຄ້າ",
+        quantity: "ຈຳນວນ",
+        box_type: "ປະເພດແພັກ",
+        pack_size: "ຂະໜາດແພັກ",
+        actions: "ການປະຕິບັດ",
+        add_item: "ເພີ່ມລາຍການ",
+        total_items: "ລາຍການທັງໝົດ",
+        total_quantity: "ຈຳນວນທັງໝົດ",
+        shipping_information: "ຂໍ້ມູນຂົນສົ່ງ",
+        carrier: "ຜູ້ໃຫ້ບໍລິການຂົນສົ່ງ",
+        estimated_delivery: "ວັນທີສົ່ງໂດຍປະມານ",
+        shipping_cost: "ມູນຄ່າຂົນສົ່ງ",
+        create_shipment_generate_barcode: "ສ້າງລາຍການຂົນສົ່ງ & ສ້າງບາໂຄດ",
+      }
+    };
+
+    function changeLanguage(lang, element) {
+      currentLanguage = lang;
+      
+      // Update language buttons
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      element.classList.add('active');
+      
+      // Update all text elements with data-i18n attribute
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+    }
+
+    // Show/hide loading overlay
+    function showLoading(show) {
+      document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    }
+
+    // Initialize data storage
+    function initializeShipmentsData() {
+      if (!localStorage.getItem('shipments')) {
+        localStorage.setItem('shipments', JSON.stringify([]));
+      }
+      if (!localStorage.getItem('customers')) {
+        localStorage.setItem('customers', JSON.stringify([]));
+      }
+    }
+
+    // Generate Shipment ID from Shipment Number
+    function generateShipmentId() {
+      const shipmentNo = document.getElementById('shipmentNo').value.trim();
+      if (shipmentNo) {
+        // Clean the shipment number and create a unique ID
+        const cleanShipmentNo = shipmentNo.replace(/[^a-zA-Z0-9]/g, '');
+        const timestamp = Date.now().toString().slice(-6);
+        const shipmentId = `SHIP-${cleanShipmentNo}-${timestamp}`;
+        document.getElementById('shipmentIdDisplay').value = shipmentId;
+      } else {
+        document.getElementById('shipmentIdDisplay').value = '';
+      }
+    }
+
+    // Load customer dropdown
+    function loadCustomerDropdown() {
+      const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+      const datalist = document.getElementById('customerCodes');
+      datalist.innerHTML = '';
+      
+      customers.forEach(customer => {
+        const option = document.createElement('option');
+        option.value = customer.code;
+        option.textContent = `${customer.code} - ${customer.name}`;
+        datalist.appendChild(option);
+      });
+    }
+
+    // Notification System
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Invoice Management
+    function addInvoice() {
+      const container = document.getElementById('invoicesContainer');
+      const newInvoice = document.createElement('div');
+      newInvoice.className = 'invoice-item';
+      newInvoice.innerHTML = `
+        <input type="text" class="invoice-input" placeholder="Invoice Number (e.g., INV-001)" required>
+        <button class="btn btn-danger" onclick="removeInvoice(this)"><i class="fas fa-trash"></i></button>
+      `;
+      container.appendChild(newInvoice);
+    }
+
+    function removeInvoice(button) {
+      const container = document.getElementById('invoicesContainer');
+      if (container.children.length > 1) {
+        button.parentElement.remove();
+      } else {
+        showNotification('At least one invoice is required', 'warning');
+      }
+    }
+
+    function getInvoices() {
+      const invoiceInputs = document.querySelectorAll('.invoice-input');
+      const invoices = [];
+      invoiceInputs.forEach(input => {
+        if (input.value.trim()) {
+          invoices.push(input.value.trim());
+        }
+      });
+      return invoices;
+    }
+
+    // Customer Management Functions
+    function loadCustomerDetails() {
+      const customerCode = document.getElementById('customerCode').value.trim();
+      if (!customerCode) {
+        showNotification('Please enter a customer code', 'error');
+        return;
+      }
+
+      // Get customers from localStorage
+      const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+      const customer = customers.find(c => c.code === customerCode);
+
+      if (customer) {
+        document.getElementById('customerNameDisplay').value = customer.name || '';
+        document.getElementById('customerMobileDisplay').value = customer.mobile || '';
+        document.getElementById('customerAddressDisplay').value = customer.address || '';
+        document.getElementById('customerContactDisplay').value = customer.contactPerson || '';
+        document.getElementById('customerDetails').style.display = 'block';
+        showNotification('Customer loaded successfully', 'success');
+      } else {
+        showNotification('Customer not found. Please check the customer code.', 'error');
+        document.getElementById('customerDetails').style.display = 'none';
+      }
+    }
+
+    // Shipment Management Functions
+    let itemCount = 0;
+
+    function addItem() {
+      const itemsTable = document.getElementById('itemsTable');
+      const newRow = itemsTable.insertRow();
+      
+      newRow.innerHTML = `
+        <td><input type="text" placeholder="Item name" onchange="updateSummary()"></td>
+        <td><input type="number" placeholder="0" min="1" value="1" onchange="updateSummary()"></td>
+        <td>
+          <select onchange="updateSummary()">
+            <option value="">Select Box Type</option>
+            <option value="Small">Small</option>
+            <option value="Medium">Medium</option>
+            <option value="Large">Large</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </td>
+        <td><input type="text" placeholder="Pack size" onchange="updateSummary()"></td>
+        <td>
+          <button class="btn btn-danger" onclick="removeItem(this)"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      
+      itemCount++;
+      updateSummary();
+    }
+
+    function removeItem(button) {
+      const row = button.closest('tr');
+      row.remove();
+      itemCount--;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const items = document.querySelectorAll('#itemsTable tr');
+      let totalItems = 0;
+      let totalQuantity = 0;
+
+      items.forEach(row => {
+        const quantityInput = row.querySelector('input[type="number"]');
+        
+        if (quantityInput && quantityInput.value) {
+          const quantity = parseInt(quantityInput.value) || 0;
+          totalItems++;
+          totalQuantity += quantity;
+        }
+      });
+
+      document.getElementById('totalItems').textContent = totalItems;
+      document.getElementById('totalQuantity').textContent = totalQuantity;
+    }
+
+    // Date formatting function
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    }
+
+    function createManualShipment() {
+      showLoading(true);
+      
+      try {
+        // Validate required fields
+        const shipmentNo = document.getElementById('shipmentNo').value.trim();
+        const customerCode = document.getElementById('customerCode').value.trim();
+        const invoices = getInvoices();
+        const shipmentId = document.getElementById('shipmentIdDisplay').value.trim();
+
+        if (!shipmentNo || !customerCode || invoices.length === 0) {
+          showNotification('Please fill in all required fields: Shipment Number, Customer Code, and at least one Invoice', 'error');
+          showLoading(false);
+          return;
+        }
+
+        // Check if shipment number already exists
+        const existingShipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+        const shipmentExists = existingShipments.some(s => s.shipmentNo === shipmentNo);
+        
+        if (shipmentExists) {
+          showNotification('Shipment number already exists. Please use a unique shipment number.', 'error');
+          showLoading(false);
+          return;
+        }
+
+        // Get customer details
+        const customers = JSON.parse(localStorage.getItem('customers') || '[]');
+        const customer = customers.find(c => c.code === customerCode);
+
+        if (!customer) {
+          showNotification('Customer not found. Please load customer details first.', 'error');
+          showLoading(false);
+          return;
+        }
+
+        // Validate shipping cost
+        const shippingCostInput = document.getElementById('shippingCost').value;
+        const shippingCost = parseFloat(shippingCostInput) || 0;
+        if (shippingCost < 0) {
+          showNotification('Shipping cost cannot be negative', 'error');
+          showLoading(false);
+          return;
+        }
+
+        // Collect items data
+        const items = [];
+        const itemRows = document.querySelectorAll('#itemsTable tr');
+        
+        itemRows.forEach(row => {
+          const inputs = row.querySelectorAll('input, select');
+          if (inputs[0].value) { // Only add if item name exists
+            items.push({
+              name: inputs[0].value,
+              quantity: inputs[1].value || "0",
+              boxType: inputs[2].value,
+              packSize: inputs[3].value
+            });
+          }
+        });
+
+        // Create shipment object
+        const shipment = {
+          id: shipmentId,
+          shipmentNo: shipmentNo,
+          invoices: invoices,
+          customerCode: customerCode,
+          customerName: customer.name,
+          customerAddress: customer.address,
+          customerMobile: customer.mobile,
+          customerContact: customer.contactPerson || '',
+          packerName: document.getElementById('packerName').value || '',
+          deliverName: document.getElementById('deliverName').value || '',
+          salesName: document.getElementById('salesName').value || '',
+          items: items,
+          carrier: document.getElementById('carrier').value || '',
+          estDelivery: document.getElementById('estDelivery').value || '',
+          shippingCost: shippingCost,
+          shippingCurrency: document.getElementById('shippingCurrency').value || 'LAK',
+          status: 'received',
+          statusHistory: [{
+            status: 'received',
+            timestamp: new Date().toISOString(),
+            notes: 'Shipment created'
+          }],
+          createdDate: new Date().toISOString(),
+          createdBy: localStorage.getItem('username') || 'Unknown',
+          lastUpdated: new Date().toISOString(),
+          deliveredDate: null,
+          notes: ''
+        };
+
+        // Save to localStorage
+        existingShipments.push(shipment);
+        localStorage.setItem('shipments', JSON.stringify(existingShipments));
+
+        // Show success message with barcode and customer details
+        document.getElementById('newShipmentResult').innerHTML = `
+          <div class="barcode-container">
+            <h3 style="color: var(--success); margin-bottom: 1rem;"><i class="fas fa-check-circle"></i> Shipment Created Successfully!</h3>
+            <div id="barcode"></div>
+            <p style="margin-top: 1rem; font-weight: 600; font-size: 1.2rem;">Shipment Number: ${shipment.shipmentNo}</p>
+            <p style="margin-top: 0.5rem; font-weight: 600;">Shipment ID: ${shipment.id}</p>
+            <p style="color: var(--text-light); margin-top: 0.5rem;">Keep this barcode for tracking purposes</p>
+            <div style="margin-top: 1.5rem;">
+              <button class="btn btn-primary" onclick="printBarcode()">
+                <i class="fas fa-print"></i> Print Barcode
+              </button>
+              <a href="track-shipment.html?id=${shipment.id}" class="btn btn-success" style="margin-left: 0.5rem;">
+                <i class="fas fa-eye"></i> View Shipment
+              </a>
+              <button class="btn btn-outline" onclick="resetForm()" style="margin-left: 0.5rem;">
+                <i class="fas fa-plus"></i> Create Another
+              </button>
+            </div>
+          </div>
+          <div class="barcode-details">
+            <h4 style="margin-bottom: 1rem; color: var(--primary);"><i class="fas fa-user"></i> Customer Details</h4>
+            <div class="barcode-field">
+              <span class="barcode-label">Customer Name:</span>
+              <span class="barcode-value">${shipment.customerName}</span>
+            </div>
+            <div class="barcode-field">
+              <span class="barcode-label">Address:</span>
+              <span class="barcode-value">${shipment.customerAddress}</span>
+            </div>
+            <div class="barcode-field">
+              <span class="barcode-label">Mobile:</span>
+              <span class="barcode-value">${shipment.customerMobile}</span>
+            </div>
+            <div class="barcode-field">
+              <span class="barcode-label">Contact Person:</span>
+              <span class="barcode-value">${shipment.customerContact || 'N/A'}</span>
+            </div>
+            <div class="barcode-field">
+              <span class="barcode-label">Sales Representative:</span>
+              <span class="barcode-value">${shipment.salesName || 'N/A'}</span>
+            </div>
+            <div class="barcode-field">
+              <span class="barcode-label">Shipping Cost:</span>
+              <span class="barcode-value">${shipment.shippingCost} ${shipment.shippingCurrency}</span>
+            </div>
+            <div class="barcode-field">
+              <span class="barcode-label">Created Date:</span>
+              <span class="barcode-value">${formatDate(shipment.createdDate)}</span>
+            </div>
+          </div>
+        `;
+
+        // Generate barcode AFTER the HTML is updated
+        setTimeout(() => {
+          generateBarcode(shipment.id);
+          showLoading(false);
+        }, 100);
+
+        showNotification('Shipment created successfully! Data saved to localStorage.', 'success');
+        
+      } catch (error) {
+        showLoading(false);
+        console.error('Error creating shipment:', error);
+        showNotification('Error creating shipment: ' + error.message, 'error');
+      }
+    }
+
+    function generateBarcode(shipmentId) {
+      // Clear any existing barcode
+      const barcodeContainer = document.getElementById('barcode');
+      if (!barcodeContainer) {
+        console.error('Barcode container not found');
+        return;
+      }
+      
+      // Create SVG element
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('id', 'barcode-svg');
+      svg.setAttribute('width', '300');
+      svg.setAttribute('height', '150');
+      barcodeContainer.appendChild(svg);
+      
+      // Generate barcode
+      try {
+        JsBarcode("#barcode-svg", shipmentId, {
+          format: "CODE128",
+          width: 2,
+          height: 100,
+          displayValue: true,
+          fontSize: 16,
+          margin: 10,
+          background: "#ffffff",
+          lineColor: "#000000"
+        });
+      } catch (error) {
+        console.error('Barcode generation error:', error);
+        // Fallback: Show error message
+        barcodeContainer.innerHTML = `
+          <div style="color: var(--danger); text-align: center; padding: 2rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Error generating barcode: ${error.message}</p>
+            <p>Shipment ID: ${shipmentId}</p>
+          </div>
+        `;
+      }
+    }
+
+    function printBarcode() {
+      const barcodeSvg = document.getElementById('barcode-svg');
+      
+      if (!barcodeSvg) {
+        showNotification('No barcode found to print. Please try creating the shipment again.', 'error');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      const svgData = new XMLSerializer().serializeToString(barcodeSvg);
+      
+      // Get shipment details from the page
+      const shipmentNo = document.querySelector('#newShipmentResult p:nth-child(3)')?.textContent.replace('Shipment Number: ', '') || '';
+      const shipmentId = document.querySelector('#newShipmentResult p:nth-child(4)')?.textContent.replace('Shipment ID: ', '') || '';
+      
+      // Get customer details from the barcode details section
+      const customerName = document.querySelector('.barcode-details .barcode-field:nth-child(1) .barcode-value')?.textContent || 'N/A';
+      const customerAddress = document.querySelector('.barcode-details .barcode-field:nth-child(2) .barcode-value')?.textContent || 'N/A';
+      const customerMobile = document.querySelector('.barcode-details .barcode-field:nth-child(3) .barcode-value')?.textContent || 'N/A';
+      const customerContact = document.querySelector('.barcode-details .barcode-field:nth-child(4) .barcode-value')?.textContent || 'N/A';
+      const salesName = document.querySelector('.barcode-details .barcode-field:nth-child(5) .barcode-value')?.textContent || 'N/A';
+      const shippingCost = document.querySelector('.barcode-details .barcode-field:nth-child(6) .barcode-value')?.textContent || 'N/A';
+      const createdDate = document.querySelector('.barcode-details .barcode-field:nth-child(7) .barcode-value')?.textContent || 'N/A';
+      
+      const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Print Barcode - ${shipmentNo}</title>
+          <style>
+            body { 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              height: 100vh; 
+              margin: 0; 
+              font-family: Phetsarath OT, Arial, sans-serif;
+              background: white;
+            }
+            .barcode-container { 
+              text-align: center; 
+              padding: 30px;
+              border: 1px solid #ccc;
+              background: white;
+              max-width: 500px;
+              width: 100%;
+            }
+            svg {
+              display: block;
+              margin: 0 auto;
+              background: white;
+            }
+            .shipment-info {
+              margin-top: 20px;
+              font-size: 16px;
+              text-align: center;
+            }
+            .customer-details {
+              margin-top: 20px;
+              text-align: left;
+              font-size: 14px;
+              border-top: 1px solid #ccc;
+              padding-top: 15px;
+            }
+            .customer-field {
+              margin-bottom: 8px;
+              display: flex;
+            }
+            .customer-label {
+              font-weight: bold;
+              min-width: 150px;
+            }
+            .company-info {
+              margin-top: 20px;
+              text-align: center;
+              color: #666;
+              font-size: 12px;
+              border-top: 1px solid #ccc;
+              padding-top: 10px;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #007bff;
+            }
+            .header h2 {
+              margin: 0;
+              color: #007bff;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="barcode-container">
+            <div class="header">
+              <h2>VTP Logistics</h2>
+              <p>Shipment Barcode</p>
+            </div>
+            
+            ${svgData}
+            
+            <div class="shipment-info">
+              <p style="font-weight: bold; margin-bottom: 5px; font-size: 18px;">${shipmentNo}</p>
+              <p style="color: #666; margin-bottom: 15px;">ID: ${shipmentId}</p>
+            </div>
+            
+            <div class="customer-details">
+              <div class="customer-field">
+                <span class="customer-label">Customer Name:</span>
+                <span>${customerName}</span>
+              </div>
+              <div class="customer-field">
+                <span class="customer-label">Address:</span>
+                <span>${customerAddress}</span>
+              </div>
+              <div class="customer-field">
+                <span class="customer-label">Mobile:</span>
+                <span>${customerMobile}</span>
+              </div>
+              <div class="customer-field">
+                <span class="customer-label">Contact Person:</span>
+                <span>${customerContact}</span>
+              </div>
+              <div class="customer-field">
+                <span class="customer-label">Sales Rep:</span>
+                <span>${salesName}</span>
+              </div>
+              <div class="customer-field">
+                <span class="customer-label">Shipping Cost:</span>
+                <span>${shippingCost}</span>
+              </div>
+              <div class="customer-field">
+                <span class="customer-label">Created Date:</span>
+                <span>${createdDate}</span>
+              </div>
+            </div>
+            
+            <div class="company-info">
+              SmartTrack Logistics System<br>
+              © 2025 ເຄື່ອງມືຕິດຕາມການຂົນສົ່ງ
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Wait for content to load before printing
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    }
+
+    function resetForm() {
+      document.getElementById('shipmentNo').value = '';
+      document.getElementById('shipmentIdDisplay').value = '';
+      document.getElementById('customerCode').value = '';
+      document.getElementById('packerName').value = '';
+      document.getElementById('deliverName').value = '';
+      document.getElementById('salesName').value = '';
+      document.getElementById('carrier').value = '';
+      document.getElementById('estDelivery').value = '';
+      document.getElementById('shippingCost').value = '';
+      document.getElementById('itemsTable').innerHTML = '';
+      document.getElementById('customerDetails').style.display = 'none';
+      document.getElementById('newShipmentResult').innerHTML = '';
+      
+      // Reset invoices
+      const invoicesContainer = document.getElementById('invoicesContainer');
+      invoicesContainer.innerHTML = `
+        <div class="invoice-item">
+          <input type="text" class="invoice-input" placeholder="Invoice Number (e.g., INV-001)" required>
+          <button class="btn btn-danger" onclick="removeInvoice(this)"><i class="fas fa-trash"></i></button>
+        </div>
+      `;
+      
+      itemCount = 0;
+      updateSummary();
+      
+      // Set default date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('estDelivery').value = tomorrow.toISOString().slice(0, 16);
+      
+      // Add one initial item row
+      addItem();
+      
+      showNotification('Form reset. Ready to create new shipment.', 'success');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check authentication
+      checkAuth();
+      
+      // Initialize data storage
+      initializeShipmentsData();
+      
+      // Load customer dropdown
+      loadCustomerDropdown();
+      
+      // Set default date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('estDelivery').value = tomorrow.toISOString().slice(0, 16);
+      
+      // Add one initial item row
+      addItem();
+      
+      // Generate shipment ID when shipment number changes
+      document.getElementById('shipmentNo').addEventListener('input', generateShipmentId);
+      
+      // Initialize language
+      changeLanguage('en', document.querySelector('.lang-btn.active'));
+      
+      // Set active navigation
+      setActiveNav();
+    });
+
+    function setActiveNav() {
+      const currentPage = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === currentPage) {
+          link.classList.add('active');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+[file content end]

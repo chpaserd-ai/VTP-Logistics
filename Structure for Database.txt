@@ -1,0 +1,13 @@
+database/
+├── init.sql                    # Main database initialization
+├── 01_create_database.sh      # Database creation script
+├── 02_reset_database.sh       # Database reset script (use with caution)
+├── 03_backup_database.sh      # Backup script
+├── 04_restore_database.sh     # Restore script
+├── 05_check_database.sh       # Health check script
+├── Makefile                   # Makefile for easy commands
+├── README.md                  # Database-specific README
+├── backups/                   # Directory for backup files (auto-created)
+│   └── README.md
+└── logs/                      # Directory for log files (auto-created)
+    └── README.md

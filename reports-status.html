@@ -1,0 +1,2593 @@
+[file content begin]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Status - SmartTrack</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+  <!-- Chart.js for visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-dark: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #17a2b8;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --text: #212529;
+      --text-light: #6c757d;
+      --border: #dee2e6;
+      --background: #ffffff;
+      --surface: #f8f9fa;
+      --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Phetsarath OT, Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 1rem 0;
+      box-shadow: var(--shadow-lg);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      height: 70px;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* UPDATED: Make header logo clickable */
+    .logo-link {
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .logo-link:hover {
+      opacity: 0.9;
+    }
+
+    header h1 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Navigation */
+    .main-nav {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background 0.3s;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Language Selector */
+    .language-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .lang-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.875rem;
+    }
+
+    .lang-btn.active {
+      background: rgba(255, 255, 255, 0.4);
+      font-weight: bold;
+    }
+
+    /* Main Content */
+    .main-container {
+      margin-top: 100px;
+      padding-bottom: 2rem;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .page-title .icon {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .page-title h2 {
+      margin: 0;
+      color: var(--dark);
+    }
+
+    /* Card Styles */
+    .card {
+      background: var(--background);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 1.5rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-header .icon {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .card-header h2, .card-header h3 {
+      margin: 0;
+      color: var(--dark);
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    input, select, textarea {
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 1rem;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    input:read-only {
+      background-color: var(--light);
+      cursor: not-allowed;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--light);
+    }
+
+    /* NEW: Dashboard Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .metric-card {
+      background: var(--background);
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--primary);
+    }
+
+    .metric-card.received { border-left-color: var(--info); }
+    .metric-card.packed { border-left-color: #ffc107; }
+    .metric-card.intransit { border-left-color: var(--warning); }
+    .metric-card.delivered { border-left-color: var(--success); }
+    .metric-card.cancelled { border-left-color: var(--danger); }
+
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-change {
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+
+    .metric-change.positive { color: var(--success); }
+    .metric-change.negative { color: var(--danger); }
+
+    /* NEW: Charts Container */
+    .charts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-card {
+      background: var(--background);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .chart-header {
+      padding: 1rem 1.5rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chart-header h3 {
+      margin: 0;
+      color: var(--dark);
+      font-size: 1rem;
+    }
+
+    .chart-body {
+      padding: 1.5rem;
+      height: 250px;
+      position: relative;
+    }
+
+    /* NEW: Status Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+      margin: 1.5rem 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      top: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 3px solid var(--background);
+    }
+
+    .timeline-item.received::before { background: var(--info); }
+    .timeline-item.packed::before { background: #ffc107; }
+    .timeline-item.intransit::before { background: var(--warning); }
+    .timeline-item.delivered::before { background: var(--success); }
+    .timeline-item.cancelled::before { background: var(--danger); }
+
+    .timeline-content {
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid var(--border);
+    }
+
+    .timeline-content.received { border-left-color: var(--info); }
+    .timeline-content.packed { border-left-color: #ffc107; }
+    .timeline-content.intransit { border-left-color: var(--warning); }
+    .timeline-content.delivered { border-left-color: var(--success); }
+    .timeline-content.cancelled { border-left-color: var(--danger); }
+
+    .timeline-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .timeline-date {
+      font-size: 0.75rem;
+      color: var(--text-light);
+    }
+
+    .timeline-desc {
+      font-size: 0.875rem;
+      color: var(--text);
+      margin-top: 0.5rem;
+    }
+
+    /* NEW: Quick Status Update Panel */
+    .quick-update-panel {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .quick-update-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .quick-update-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .quick-update-item {
+      background: var(--background);
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .quick-update-item:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      border-color: var(--primary);
+    }
+
+    .quick-update-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .quick-update-text {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .quick-update-count {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+    }
+
+    /* Status Method Tabs */
+    .status-method-tabs {
+      display: flex;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-method-tab {
+      padding: 0.75rem 1.5rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .status-method-tab.active {
+      border-bottom-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .status-method {
+      display: none;
+    }
+
+    /* Barcode Scanner */
+    .scanner-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin: 1rem auto;
+    }
+
+    #barcode-scanner {
+      width: 100%;
+      height: 300px;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .scanner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .scanner-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: var(--primary);
+      top: 50%;
+      animation: scan 2s infinite linear;
+    }
+
+    @keyframes scan {
+      0% { top: 10%; }
+      50% { top: 90%; }
+      100% { top: 10%; }
+    }
+
+    .scanner-frame {
+      position: absolute;
+      top: 20%;
+      left: 10%;
+      width: 80%;
+      height: 60%;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+    }
+
+    /* Report Stats */
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .report-stat {
+      background: var(--background);
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .report-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .report-label {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-top: 0.5rem;
+    }
+
+    /* Search Options */
+    .search-options {
+      display: flex;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .search-option {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .search-option input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-light);
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Item Table */
+    .item-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .item-table th {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .item-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .item-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .shipment-status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-received {
+      background: #e7f3ff;
+      color: var(--primary);
+    }
+
+    .status-packed {
+      background: #d1ecf1;
+      color: var(--info);
+    }
+
+    .status-intransit {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-delivered {
+      background: #d4edda;
+      color: var(--success);
+    }
+
+    .status-cancelled {
+      background: #f8d7da;
+      color: var(--danger);
+    }
+
+    /* NEW: Advanced Filters */
+    .advanced-filters {
+      background: var(--surface);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-section h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+    }
+
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .filter-tag {
+      background: var(--background);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .filter-tag .remove {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .filter-tag .remove:hover {
+      opacity: 1;
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background-color: var(--success);
+    }
+
+    .notification.error {
+      background-color: var(--danger);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--dark);
+      color: white;
+      text-align: center;
+      padding: 1.5rem 0;
+      margin-top: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .report-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .status-method-tabs {
+        flex-direction: column;
+      }
+      
+      .header-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        height: auto;
+      }
+      
+      .main-container {
+        margin-top: 140px;
+      }
+      
+      .user-info {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .main-nav {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .search-options {
+        flex-direction: column;
+      }
+      
+      .search-option {
+        min-width: 100%;
+      }
+      
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .quick-update-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav-link {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+      
+      .card-header, .card-body {
+        padding: 1rem;
+      }
+      
+      .report-stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .quick-update-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <!-- UPDATED: Added clickable logo -->
+      <a href="index.html" class="logo-link">
+        <h1><i class="fas fa-shipping-fast"></i> VTP Logistics</h1>
+      </a>
+      
+      <div class="user-info">
+        <div class="language-selector">
+          <button class="lang-btn active" onclick="changeLanguage('en')">EN</button>
+          <button class="lang-btn" onclick="changeLanguage('lo')">LA</button>
+        </div>
+        
+        <div class="user-details">
+          <span class="user-name" id="displayUsername">Admin</span>
+          <span class="user-role" id="displayUserRole">Administrator</span>
+        </div>
+        
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="main-nav container" style="margin-top: 70px;">
+    <a href="create-shipment.html" class="nav-link">
+      <i class="fas fa-plus-circle"></i> <span data-i18n="create_shipment">Create Shipment</span>
+    </a>
+    <a href="track-shipment.html" class="nav-link">
+      <i class="fas fa-search"></i> <span data-i18n="track_shipment">Track Shipment</span>
+    </a>
+    <a href="customer-management.html" class="nav-link">
+      <i class="fas fa-users-cog"></i> <span data-i18n="customer_management">Customer Management</span>
+    </a>
+    <a href="reports-status.html" class="nav-link active">
+      <i class="fas fa-chart-bar"></i> <span data-i18n="reports_status">Reports & Status</span>
+    </a>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container main-container">
+    <div class="page-header">
+      <div class="page-title">
+        <div class="icon"><i class="fas fa-chart-bar"></i></div>
+        <h2 data-i18n="shipment_reports_status_management">Shipment Reports & Status Management</h2>
+      </div>
+    </div>
+
+    <!-- NEW: Dashboard Metrics -->
+    <div class="metrics-grid" id="dashboardMetrics">
+      <div class="metric-card">
+        <div class="metric-value" id="totalShipmentsMetric">0</div>
+        <div class="metric-label" data-i18n="total_shipments">Total Shipments</div>
+        <div class="metric-change positive">
+          <i class="fas fa-arrow-up"></i> <span id="totalChange">0%</span>
+        </div>
+      </div>
+      <div class="metric-card received">
+        <div class="metric-value" id="receivedShipmentsMetric">0</div>
+        <div class="metric-label" data-i18n="received">Received</div>
+        <div class="metric-change" id="receivedChange">0%</div>
+      </div>
+      <div class="metric-card packed">
+        <div class="metric-value" id="packedShipmentsMetric">0</div>
+        <div class="metric-label" data-i18n="packed">Packed</div>
+        <div class="metric-change" id="packedChange">0%</div>
+      </div>
+      <div class="metric-card intransit">
+        <div class="metric-value" id="inTransitShipmentsMetric">0</div>
+        <div class="metric-label" data-i18n="in_transit">In Transit</div>
+        <div class="metric-change" id="intransitChange">0%</div>
+      </div>
+      <div class="metric-card delivered">
+        <div class="metric-value" id="deliveredShipmentsMetric">0</div>
+        <div class="metric-label" data-i18n="delivered">Delivered</div>
+        <div class="metric-change positive" id="deliveredChange">0%</div>
+      </div>
+      <div class="metric-card cancelled">
+        <div class="metric-value" id="cancelledShipmentsMetric">0</div>
+        <div class="metric-label" data-i18n="cancelled">Cancelled</div>
+        <div class="metric-change negative" id="cancelledChange">0%</div>
+      </div>
+    </div>
+
+    <!-- NEW: Charts Section -->
+    <div class="charts-container">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 data-i18n="status_distribution">Status Distribution</h3>
+        </div>
+        <div class="chart-body">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 data-i18n="daily_shipments">Daily Shipments Trend</h3>
+        </div>
+        <div class="chart-body">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW: Quick Status Update Panel -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-content">
+          <div class="icon"><i class="fas fa-bolt"></i></div>
+          <h3 data-i18n="quick_status_updates">Quick Status Updates</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="quick-update-grid">
+          <div class="quick-update-item" onclick="quickUpdateStatus('received', 'packed')">
+            <div class="quick-update-icon" style="color: var(--info);">
+              <i class="fas fa-box-open"></i>
+            </div>
+            <div class="quick-update-text">Received → Packed</div>
+            <div class="quick-update-count" id="quickReceivedCount">0</div>
+          </div>
+          <div class="quick-update-item" onclick="quickUpdateStatus('packed', 'intransit')">
+            <div class="quick-update-icon" style="color: #ffc107;">
+              <i class="fas fa-shipping-fast"></i>
+            </div>
+            <div class="quick-update-text">Packed → In Transit</div>
+            <div class="quick-update-count" id="quickPackedCount">0</div>
+          </div>
+          <div class="quick-update-item" onclick="quickUpdateStatus('intransit', 'delivered')">
+            <div class="quick-update-icon" style="color: var(--success);">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="quick-update-text">In Transit → Delivered</div>
+            <div class="quick-update-count" id="quickTransitCount">0</div>
+          </div>
+          <div class="quick-update-item" onclick="bulkUpdateStatus()">
+            <div class="quick-update-icon" style="color: var(--primary);">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <div class="quick-update-text">Bulk Update</div>
+            <div class="quick-update-count">Select Multiple</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <!-- Status Update Section -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <div class="icon"><i class="fas fa-sync-alt"></i></div>
+              <h3 data-i18n="update_shipment_status">Update Shipment Status</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- NEW: Advanced Filters -->
+            <div class="advanced-filters">
+              <div class="filter-section">
+                <h4>Advanced Filters</h4>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="filterCustomer">Customer</label>
+                    <select id="filterCustomer" onchange="applyAdvancedFilters()">
+                      <option value="">All Customers</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="filterCarrier">Carrier</label>
+                    <select id="filterCarrier" onchange="applyAdvancedFilters()">
+                      <option value="">All Carriers</option>
+                      <option value="VTP Express">VTP Express</option>
+                      <option value="Lao Post">Lao Post</option>
+                      <option value="DHL">DHL</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus" onchange="applyAdvancedFilters()">
+                      <option value="">All Statuses</option>
+                      <option value="received">Received</option>
+                      <option value="packed">Packed</option>
+                      <option value="intransit">In Transit</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div id="activeFilters" class="filter-tags"></div>
+            </div>
+
+            <div class="status-method-tabs">
+              <button class="status-method-tab active" onclick="showStatusMethod('barcode')">
+                <i class="fas fa-barcode"></i> <span data-i18n="scan_barcode">Scan Barcode</span>
+              </button>
+              <button class="status-method-tab" onclick="showStatusMethod('manual')">
+                <i class="fas fa-keyboard"></i> <span data-i18n="manual_entry">Manual Entry</span>
+              </button>
+              <button class="status-method-tab" onclick="showStatusMethod('search')">
+                <i class="fas fa-search"></i> <span data-i18n="search_shipment">Search Shipment</span>
+              </button>
+            </div>
+
+            <!-- Barcode Scanner Method -->
+            <div id="barcodeMethod" class="status-method">
+              <div class="scanner-container">
+                <div id="barcode-scanner"></div>
+                <div class="scanner-overlay">
+                  <div class="scanner-frame"></div>
+                  <div class="scanner-line"></div>
+                </div>
+              </div>
+              <div style="text-align: center; margin: 1rem 0;">
+                <button class="btn btn-primary" onclick="startBarcodeScanner()">
+                  <i class="fas fa-camera"></i> <span data-i18n="start_scanner">Start Scanner</span>
+                </button>
+                <button class="btn btn-danger" onclick="stopBarcodeScanner()">
+                  <i class="fas fa-stop"></i> <span data-i18n="stop_scanner">Stop Scanner</span>
+                </button>
+              </div>
+              <div id="scanner-result" style="text-align: center; margin: 1rem 0;"></div>
+            </div>
+
+            <!-- Manual Entry Method -->
+            <div id="manualMethod" class="status-method" style="display: none;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="statusShipmentNo" data-i18n="shipment_number">Shipment Number</label>
+                  <input type="text" id="statusShipmentNo" placeholder="Enter shipment number">
+                </div>
+                <div class="form-group">
+                  <label for="newStatus" data-i18n="new_status">New Status</label>
+                  <select id="newStatus">
+                    <option value="received" data-i18n="received">Received</option>
+                    <option value="packed" data-i18n="packed">Packed</option>
+                    <option value="intransit" data-i18n="in_transit">In Transit</option>
+                    <option value="delivered" data-i18n="delivered">Delivered</option>
+                    <option value="cancelled" data-i18n="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="statusNotes" data-i18n="status_notes">Status Notes</label>
+                  <textarea id="statusNotes" placeholder="Add any notes about the status update" rows="3"></textarea>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="updateShipmentStatus()">
+                <i class="fas fa-save"></i> <span data-i18n="update_status">Update Status</span>
+              </button>
+            </div>
+
+            <!-- Search Method -->
+            <div id="searchMethod" class="status-method" style="display: none;">
+              <div class="search-options">
+                <div class="search-option">
+                  <input type="text" id="statusSearchShipmentNo" placeholder="Enter Shipment No">
+                  <button class="btn btn-primary" onclick="searchForStatusUpdate('shipment')">
+                    <i class="fas fa-search"></i> <span data-i18n="search_by_shipment">Search by Shipment</span>
+                  </button>
+                </div>
+                <div class="search-option">
+                  <input type="text" id="statusSearchInvoiceNo" placeholder="Enter Invoice No">
+                  <button class="btn btn-primary" onclick="searchForStatusUpdate('invoice')">
+                    <i class="fas fa-file-invoice"></i> <span data-i18n="search_by_invoice">Search by Invoice</span>
+                  </button>
+                </div>
+              </div>
+              <div id="statusSearchResults" style="margin-top: 1rem;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <div class="icon"><i class="fas fa-chart-pie"></i></div>
+              <h3 data-i18n="shipment_reports">Shipment Reports</h3>
+            </div>
+            <div>
+              <button class="btn btn-outline" onclick="printReport()">
+                <i class="fas fa-print"></i> Print
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="report-stats">
+              <div class="report-stat">
+                <div class="report-value" id="totalShipments">0</div>
+                <div class="report-label" data-i18n="total_shipments">Total Shipments</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-value" id="receivedShipments">0</div>
+                <div class="report-label" data-i18n="received">Received</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-value" id="packedShipments">0</div>
+                <div class="report-label" data-i18n="packed">Packed</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-value" id="inTransitShipments">0</div>
+                <div class="report-label" data-i18n="in_transit">In Transit</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-value" id="deliveredShipments">0</div>
+                <div class="report-label" data-i18n="delivered">Delivered</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-value" id="cancelledShipments">0</div>
+                <div class="report-label" data-i18n="cancelled">Cancelled</div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="reportDateFrom" data-i18n="from_date">From Date</label>
+                <input type="date" id="reportDateFrom">
+              </div>
+              <div class="form-group">
+                <label for="reportDateTo" data-i18n="to_date">To Date</label>
+                <input type="date" id="reportDateTo">
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" onclick="generateReport()">
+                  <i class="fas fa-filter"></i> <span data-i18n="filter_report">Filter Report</span>
+                </button>
+                <button class="btn btn-success" onclick="exportShipmentReport()" style="margin-left: 0.5rem;">
+                  <i class="fas fa-file-excel"></i> <span data-i18n="export_to_excel">Export to Excel</span>
+                </button>
+                <button class="btn btn-outline" onclick="resetFilters()" style="margin-left: 0.5rem;">
+                  <i class="fas fa-redo"></i> Reset
+                </button>
+              </div>
+            </div>
+
+            <!-- NEW: Shipment Timeline -->
+            <div id="shipmentTimeline" style="margin-top: 2rem; display: none;">
+              <h4 style="margin-bottom: 1rem;">Recent Status Updates</h4>
+              <div class="timeline" id="statusTimeline"></div>
+            </div>
+
+            <div id="reportResults">
+              <div class="empty-state">
+                <div class="empty-icon"><i class="fas fa-chart-bar"></i></div>
+                <h3 data-i18n="no_report_data">No Report Data</h3>
+                <p data-i18n="no_report_data_description">Generate a report to view shipment statistics</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2025 ເຄື່ອງມືຕິດຕາມການຂົນສົ່ງ</p>
+    </div>
+  </footer>
+
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <!-- NEW: Bulk Update Modal -->
+  <div id="bulkUpdateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+      <h3 style="margin-bottom: 1rem;">Bulk Status Update</h3>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label>Select Status</label>
+        <select id="bulkStatus">
+          <option value="received">Received</option>
+          <option value="packed">Packed</option>
+          <option value="intransit">In Transit</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label>Shipment Numbers (comma separated)</label>
+        <textarea id="bulkShipmentNos" placeholder="SHIP001, SHIP002, SHIP003" rows="4"></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label>Notes</label>
+        <textarea id="bulkNotes" placeholder="Bulk update notes" rows="3"></textarea>
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button class="btn btn-outline" onclick="closeBulkModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="processBulkUpdate()">Update All</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication
+    function checkAuth() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const username = localStorage.getItem('username');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!isLoggedIn || isLoggedIn !== 'true') {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Display user info
+      document.getElementById('displayUsername').textContent = username || 'User';
+      document.getElementById('displayUserRole').textContent = userRole || 'User';
+    }
+
+    // Logout function - PRESERVES DATA
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        // Only clear authentication data
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('lastLogin');
+        
+        // Redirect to login page
+        window.location.href = 'login.html';
+      }
+    }
+
+    // UPDATED: Function to go to index page
+    function goToIndex() {
+      window.location.href = 'index.html';
+    }
+
+    // Language Management
+    let currentLanguage = 'en';
+    let statusChart, trendChart;
+    let activeFilters = {};
+    
+    const translations = {
+      en: {
+        // Navigation
+        create_shipment: "Create Shipment",
+        track_shipment: "Track Shipment",
+        customer_management: "Customer Management",
+        reports_status: "Reports & Status",
+        
+        // Reports & Status Tab
+        shipment_reports_status_management: "Shipment Reports & Status Management",
+        update_shipment_status: "Update Shipment Status",
+        scan_barcode: "Scan Barcode",
+        manual_entry: "Manual Entry",
+        search_shipment: "Search Shipment",
+        start_scanner: "Start Scanner",
+        stop_scanner: "Stop Scanner",
+        new_status: "New Status",
+        status_notes: "Status Notes",
+        update_status: "Update Status",
+        search_by_shipment: "Search by Shipment",
+        search_by_invoice: "Search by Invoice",
+        shipment_number: "Shipment Number",
+        shipment_reports: "Shipment Reports",
+        total_shipments: "Total Shipments",
+        received: "Received",
+        packed: "Packed",
+        in_transit: "In Transit",
+        delivered: "Delivered",
+        cancelled: "Cancelled",
+        from_date: "From Date",
+        to_date: "To Date",
+        filter_report: "Filter Report",
+        export_to_excel: "Export to Excel",
+        no_report_data: "No Report Data",
+        no_report_data_description: "Generate a report to view shipment statistics",
+        status_distribution: "Status Distribution",
+        daily_shipments: "Daily Shipments Trend",
+        quick_status_updates: "Quick Status Updates"
+      },
+      lo: {
+        // Navigation
+        create_shipment: "ສ້າງລາຍການຂົນສົ່ງ",
+        track_shipment: "ຕິດຕາມການຂົນສົ່ງ",
+        customer_management: "ການຈັດການລູກຄ້າ",
+        reports_status: "ລາຍງານ & ສະຖານະສິນຄ້າ",
+        
+        // Reports & Status Tab
+        shipment_reports_status_management: "ລາຍງານ & ສະຖານະຂົນສົ່ງ",
+        update_shipment_status: "ປັບປຸງສະຖານະຂົນສົ່ງ",
+        scan_barcode: "ສະແກນ Barcode",
+        manual_entry: "ປ້ອນຂໍ້ມູນເອງ",
+        search_shipment: "ຄົ້ນຫາລາຍການຂົນສົ່ງ",
+        start_scanner: "ເລີ່ມສະແກນ",
+        stop_scanner: "ຢຸດສະແກນ",
+        new_status: "ສະຖານະໃໝ່",
+        status_notes: "ບັນທຶກສະຖານະການ",
+        update_status: "ປັບປຸງສະຖານະ",
+        search_by_shipment: "ຄົ້ນຫາດ້ວຍເລກຂົນສົ່ງ",
+        search_by_invoice: "ຄົ້ນຫາດ້ວຍເລກໃບເກັບເງິນ",
+        shipment_number: "ເລກທີຂົນສົ່ງ",
+        shipment_reports: "ລາຍງານສະຖານະຂົນສົ່ງ",
+        total_shipments: "ລາຍການຂົນສົ່ງທັງໝົດ",
+        received: "ໄດ້ຮັບອໍເດີ",
+        packed: "ແພັກແລ້ວ",
+        in_transit: "ກຳລັງຂົນສົ່ງ",
+        delivered: "ສົ່ງແລ້ວ",
+        cancelled: "ຍົກເລີກ",
+        from_date: "ຈາກວັນທີ",
+        to_date: "ຫາວັນທີ",
+        filter_report: "ຄັດສັນລາຍງານ",
+        export_to_excel: "ສົ່ງອອກເປັນ Excel",
+        no_report_data: "ບໍ່ມີຂໍ້ມູນລາຍງານ",
+        no_report_data_description: "ສ້າງລາຍງານເພື່ອເບິ່ງສະຖິຕິການຂົນສົ່ງ",
+        status_distribution: "ການແຈກຢາຍສະຖານະ",
+        daily_shipments: "ແນວໂນ້ມການຂົນສົ່ງປະຈຳວັນ",
+        quick_status_updates: "ປັບປຸງສະຖານະໄວ"
+      }
+    };
+
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      
+      // Update language buttons
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+      
+      // Update all text elements with data-i18n attribute
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+      
+      // Update select options
+      updateSelectOptions();
+    }
+
+    function updateSelectOptions() {
+      const statusSelect = document.getElementById('newStatus');
+      if (statusSelect) {
+        Array.from(statusSelect.options).forEach(option => {
+          const key = option.getAttribute('data-i18n');
+          if (key && translations[currentLanguage] && translations[currentLanguage][key]) {
+            option.textContent = translations[currentLanguage][key];
+          }
+        });
+      }
+    }
+
+    // NEW: Initialize data storage
+    function initializeReportsData() {
+        if (!localStorage.getItem('shipments')) {
+            localStorage.setItem('shipments', JSON.stringify([]));
+        }
+        // Initialize sample data if empty (for testing)
+        const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+        if (shipments.length === 0) {
+            const sampleShipments = [
+                {
+                    id: 'ST-SHIP001-123456',
+                    shipmentNo: 'SHIP001',
+                    invoices: ['INV001'],
+                    customerCode: 'CUST001',
+                    customerName: 'Sample Customer',
+                    status: 'received',
+                    createdDate: new Date().toISOString(),
+                    statusHistory: [{
+                        status: 'received',
+                        timestamp: new Date().toISOString(),
+                        notes: 'Shipment created'
+                    }]
+                }
+            ];
+            localStorage.setItem('shipments', JSON.stringify(sampleShipments));
+        }
+    }
+
+    // Date formatting function
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    }
+
+    function formatDateTime(dateString) {
+      if (!dateString) return '';
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    }
+
+    // NEW: Format time ago
+    function timeAgo(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      
+      let interval = Math.floor(seconds / 31536000);
+      if (interval >= 1) return interval + " year" + (interval > 1 ? "s" : "") + " ago";
+      
+      interval = Math.floor(seconds / 2592000);
+      if (interval >= 1) return interval + " month" + (interval > 1 ? "s" : "") + " ago";
+      
+      interval = Math.floor(seconds / 86400);
+      if (interval >= 1) return interval + " day" + (interval > 1 ? "s" : "") + " ago";
+      
+      interval = Math.floor(seconds / 3600);
+      if (interval >= 1) return interval + " hour" + (interval > 1 ? "s" : "") + " ago";
+      
+      interval = Math.floor(seconds / 60);
+      if (interval >= 1) return interval + " minute" + (interval > 1 ? "s" : "") + " ago";
+      
+      return "just now";
+    }
+
+    // Notification System
+    function showNotification(message, type) {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // NEW: Initialize Charts
+    function initCharts(shipments) {
+      // Destroy existing charts
+      if (statusChart) statusChart.destroy();
+      if (trendChart) trendChart.destroy();
+      
+      // Status Distribution Chart
+      const statusCtx = document.getElementById('statusChart').getContext('2d');
+      const statusCounts = {
+        received: shipments.filter(s => s.status === 'received').length,
+        packed: shipments.filter(s => s.status === 'packed').length,
+        intransit: shipments.filter(s => s.status === 'intransit').length,
+        delivered: shipments.filter(s => s.status === 'delivered').length,
+        cancelled: shipments.filter(s => s.status === 'cancelled').length
+      };
+      
+      statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Received', 'Packed', 'In Transit', 'Delivered', 'Cancelled'],
+          datasets: [{
+            data: [
+              statusCounts.received,
+              statusCounts.packed,
+              statusCounts.intransit,
+              statusCounts.delivered,
+              statusCounts.cancelled
+            ],
+            backgroundColor: [
+              '#17a2b8', // info
+              '#ffc107', // warning
+              '#fd7e14', // orange
+              '#28a745', // success
+              '#dc3545'  // danger
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+      
+      // Daily Trend Chart
+      const trendCtx = document.getElementById('trendChart').getContext('2d');
+      const last7Days = Array.from({length: 7}, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        return date.toISOString().slice(0, 10);
+      }).reverse();
+      
+      const dailyCounts = last7Days.map(date => {
+        return shipments.filter(s => 
+          s.createdDate && s.createdDate.startsWith(date)
+        ).length;
+      });
+      
+      trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: last7Days.map(date => formatDate(date)),
+          datasets: [{
+            label: 'Shipments',
+            data: dailyCounts,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // NEW: Load Dashboard Metrics with Trend Analysis
+    function loadDashboardMetrics(shipments) {
+      const total = shipments.length;
+      const received = shipments.filter(s => s.status === 'received').length;
+      const packed = shipments.filter(s => s.status === 'packed').length;
+      const intransit = shipments.filter(s => s.status === 'intransit').length;
+      const delivered = shipments.filter(s => s.status === 'delivered').length;
+      const cancelled = shipments.filter(s => s.status === 'cancelled').length;
+      
+      // Update metric values
+      document.getElementById('totalShipmentsMetric').textContent = total;
+      document.getElementById('receivedShipmentsMetric').textContent = received;
+      document.getElementById('packedShipmentsMetric').textContent = packed;
+      document.getElementById('inTransitShipmentsMetric').textContent = intransit;
+      document.getElementById('deliveredShipmentsMetric').textContent = delivered;
+      document.getElementById('cancelledShipmentsMetric').textContent = cancelled;
+      
+      // Calculate quick update counts
+      document.getElementById('quickReceivedCount').textContent = received;
+      document.getElementById('quickPackedCount').textContent = packed;
+      document.getElementById('quickTransitCount').textContent = intransit;
+      
+      // Calculate trends (simplified - in real app, compare with previous period)
+      const totalChange = total > 0 ? '+5%' : '0%';
+      const deliveredChange = delivered > 0 ? '+12%' : '0%';
+      const cancelledChange = cancelled > 0 ? '-2%' : '0%';
+      
+      document.getElementById('totalChange').textContent = totalChange;
+      document.getElementById('deliveredChange').textContent = deliveredChange;
+      document.getElementById('cancelledChange').textContent = cancelledChange;
+      
+      // Update change indicators
+      document.getElementById('totalChange').parentElement.className = 
+        totalChange.startsWith('+') ? 'metric-change positive' : 'metric-change negative';
+    }
+
+    // NEW: Quick Status Update
+    function quickUpdateStatus(fromStatus, toStatus) {
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      const filteredShipments = shipments.filter(s => s.status === fromStatus);
+      
+      if (filteredShipments.length === 0) {
+        showNotification(`No shipments in ${fromStatus} status to update`, 'info');
+        return;
+      }
+      
+      // Ask for confirmation
+      if (confirm(`Update ${filteredShipments.length} shipments from ${fromStatus} to ${toStatus}?`)) {
+        let updatedCount = 0;
+        
+        filteredShipments.forEach(shipment => {
+          const index = shipments.findIndex(s => s.id === shipment.id);
+          if (index !== -1) {
+            shipments[index].status = toStatus;
+            
+            // Add to status history
+            if (!shipments[index].statusHistory) {
+              shipments[index].statusHistory = [];
+            }
+            
+            shipments[index].statusHistory.push({
+              status: toStatus,
+              timestamp: new Date().toISOString(),
+              notes: `Quick bulk update from ${fromStatus} to ${toStatus}`
+            });
+            
+            // Set delivered date if applicable
+            if (toStatus === 'delivered') {
+              shipments[index].deliveredDate = new Date().toISOString();
+            }
+            
+            updatedCount++;
+          }
+        });
+        
+        localStorage.setItem('shipments', JSON.stringify(shipments));
+        showNotification(`Updated ${updatedCount} shipments to ${toStatus}`, 'success');
+        
+        // Reload all data
+        loadDashboardMetrics(shipments);
+        loadReportData();
+        initCharts(shipments);
+        updateQuickUpdateCounts();
+      }
+    }
+
+    // NEW: Bulk Update Modal
+    function bulkUpdateStatus() {
+      document.getElementById('bulkUpdateModal').style.display = 'flex';
+    }
+
+    function closeBulkModal() {
+      document.getElementById('bulkUpdateModal').style.display = 'none';
+    }
+
+    function processBulkUpdate() {
+      const status = document.getElementById('bulkStatus').value;
+      const shipmentNos = document.getElementById('bulkShipmentNos').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
+      const notes = document.getElementById('bulkNotes').value;
+      
+      if (shipmentNos.length === 0) {
+        showNotification('Please enter at least one shipment number', 'error');
+        return;
+      }
+      
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      let updatedCount = 0;
+      let notFound = [];
+      
+      shipmentNos.forEach(shipmentNo => {
+        const index = shipments.findIndex(s => s.shipmentNo === shipmentNo);
+        if (index !== -1) {
+          shipments[index].status = status;
+          
+          if (!shipments[index].statusHistory) {
+            shipments[index].statusHistory = [];
+          }
+          
+          shipments[index].statusHistory.push({
+            status: status,
+            timestamp: new Date().toISOString(),
+            notes: notes || `Bulk update to ${status}`
+          });
+          
+          if (status === 'delivered') {
+            shipments[index].deliveredDate = new Date().toISOString();
+          }
+          
+          updatedCount++;
+        } else {
+          notFound.push(shipmentNo);
+        }
+      });
+      
+      localStorage.setItem('shipments', JSON.stringify(shipments));
+      
+      if (updatedCount > 0) {
+        showNotification(`Updated ${updatedCount} shipments to ${status}`, 'success');
+      }
+      
+      if (notFound.length > 0) {
+        showNotification(`Not found: ${notFound.join(', ')}`, 'error');
+      }
+      
+      closeBulkModal();
+      loadDashboardMetrics(shipments);
+      loadReportData();
+      initCharts(shipments);
+      updateQuickUpdateCounts();
+    }
+
+    // NEW: Update Quick Update Counts
+    function updateQuickUpdateCounts() {
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      const received = shipments.filter(s => s.status === 'received').length;
+      const packed = shipments.filter(s => s.status === 'packed').length;
+      const intransit = shipments.filter(s => s.status === 'intransit').length;
+      
+      document.getElementById('quickReceivedCount').textContent = received;
+      document.getElementById('quickPackedCount').textContent = packed;
+      document.getElementById('quickTransitCount').textContent = intransit;
+    }
+
+    // NEW: Advanced Filters
+    function applyAdvancedFilters() {
+      const customer = document.getElementById('filterCustomer').value;
+      const carrier = document.getElementById('filterCarrier').value;
+      const status = document.getElementById('filterStatus').value;
+      
+      activeFilters = {};
+      if (customer) activeFilters.customer = customer;
+      if (carrier) activeFilters.carrier = carrier;
+      if (status) activeFilters.status = status;
+      
+      updateActiveFiltersDisplay();
+      generateReport();
+    }
+
+    function updateActiveFiltersDisplay() {
+      const container = document.getElementById('activeFilters');
+      container.innerHTML = '';
+      
+      Object.entries(activeFilters).forEach(([key, value]) => {
+        const tag = document.createElement('div');
+        tag.className = 'filter-tag';
+        tag.innerHTML = `
+          <span>${key}: ${value}</span>
+          <span class="remove" onclick="removeFilter('${key}')">
+            <i class="fas fa-times"></i>
+          </span>
+        `;
+        container.appendChild(tag);
+      });
+    }
+
+    function removeFilter(key) {
+      delete activeFilters[key];
+      updateActiveFiltersDisplay();
+      generateReport();
+    }
+
+    function resetFilters() {
+      document.getElementById('reportDateFrom').value = '';
+      document.getElementById('reportDateTo').value = '';
+      document.getElementById('filterCustomer').value = '';
+      document.getElementById('filterCarrier').value = '';
+      document.getElementById('filterStatus').value = '';
+      activeFilters = {};
+      updateActiveFiltersDisplay();
+      generateReport();
+    }
+
+    // NEW: Populate Customer Filter
+    function populateCustomerFilter(shipments) {
+      const customerSelect = document.getElementById('filterCustomer');
+      const uniqueCustomers = [...new Set(shipments.map(s => s.customerName).filter(Boolean))];
+      
+      // Clear existing options (keeping "All Customers")
+      while (customerSelect.options.length > 1) {
+        customerSelect.remove(1);
+      }
+      
+      // Add customer options
+      uniqueCustomers.forEach(customer => {
+        const option = document.createElement('option');
+        option.value = customer;
+        option.textContent = customer;
+        customerSelect.appendChild(option);
+      });
+    }
+
+    // Status Method Tabs
+    function showStatusMethod(method) {
+      // Hide all methods
+      document.getElementById('barcodeMethod').style.display = 'none';
+      document.getElementById('manualMethod').style.display = 'none';
+      document.getElementById('searchMethod').style.display = 'none';
+      
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.status-method-tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      
+      // Show selected method and set tab active
+      document.getElementById(method + 'Method').style.display = 'block';
+      event.currentTarget.classList.add('active');
+      
+      // Stop scanner if switching to manual method
+      if (method === 'manual' || method === 'search') {
+        stopBarcodeScanner();
+      }
+    }
+
+    // Search for status update
+    function searchForStatusUpdate(type) {
+      let searchValue, searchField;
+      
+      if (type === 'shipment') {
+        searchValue = document.getElementById('statusSearchShipmentNo').value.trim();
+        searchField = 'shipmentNo';
+      } else if (type === 'invoice') {
+        searchValue = document.getElementById('statusSearchInvoiceNo').value.trim();
+        searchField = 'invoices';
+      }
+      
+      if (!searchValue) {
+        showNotification('Please enter a search value', 'error');
+        return;
+      }
+
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      let shipment;
+      
+      if (type === 'shipment') {
+        shipment = shipments.find(s => s.shipmentNo === searchValue);
+      } else if (type === 'invoice') {
+        shipment = shipments.find(s => 
+          s.invoices && s.invoices.includes(searchValue)
+        );
+      }
+
+      const resultsContainer = document.getElementById('statusSearchResults');
+      
+      if (!shipment) {
+        resultsContainer.innerHTML = `
+          <div style="color: var(--danger); text-align: center; padding: 1rem;">
+            <i class="fas fa-exclamation-triangle"></i> 
+            No shipment found with the provided ${type === 'shipment' ? 'shipment number' : 'invoice number'}
+          </div>
+        `;
+        return;
+      }
+
+      resultsContainer.innerHTML = `
+        <div class="shipment-details">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4>Shipment Found</h4>
+            <button class="btn btn-primary" onclick="loadShipmentForStatusUpdate('${shipment.shipmentNo}')">
+              <i class="fas fa-edit"></i> Update Status
+            </button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Shipment ID</label>
+              <input type="text" value="${shipment.id}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Shipment Number</label>
+              <input type="text" value="${shipment.shipmentNo}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Customer</label>
+              <input type="text" value="${shipment.customerName}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Current Status</label>
+              <input type="text" value="${shipment.status.toUpperCase()}" readonly>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function loadShipmentForStatusUpdate(shipmentNo) {
+      showStatusMethod('manual');
+      document.getElementById('statusShipmentNo').value = shipmentNo;
+      
+      // Auto-select next logical status
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      const shipment = shipments.find(s => s.shipmentNo === shipmentNo);
+      
+      if (shipment) {
+        const statusSelect = document.getElementById('newStatus');
+        const currentStatus = shipment.status;
+        
+        // Set next status based on current status
+        if (currentStatus === 'received') {
+          statusSelect.value = 'packed';
+        } else if (currentStatus === 'packed') {
+          statusSelect.value = 'intransit';
+        } else if (currentStatus === 'intransit') {
+          statusSelect.value = 'delivered';
+        }
+      }
+      
+      document.getElementById('statusSearchResults').innerHTML = '';
+      showNotification(`Shipment ${shipmentNo} loaded for status update`, 'success');
+    }
+
+    // Barcode Scanner Functions
+    let scannerActive = false;
+
+    function startBarcodeScanner() {
+      const scannerElement = document.getElementById('barcode-scanner');
+      const resultElement = document.getElementById('scanner-result');
+      
+      if (!scannerElement) {
+        showNotification('Scanner element not found', 'error');
+        return;
+      }
+
+      // Clear previous result
+      resultElement.innerHTML = '';
+
+      // Initialize QuaggaJS barcode scanner
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: scannerElement,
+          constraints: {
+            width: 500,
+            height: 300,
+            facingMode: "environment" // Use back camera
+          }
+        },
+        decoder: {
+          readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader"]
+        }
+      }, function(err) {
+        if (err) {
+          console.error('Error initializing barcode scanner:', err);
+          resultElement.innerHTML = `
+            <div style="color: var(--danger);">
+              <i class="fas fa-exclamation-triangle"></i> 
+              Error starting scanner: ${err.message}
+            </div>
+            <p style="margin-top: 0.5rem; color: var(--text-light);">
+              Please ensure camera access is allowed and try again
+            </p>
+          `;
+          return;
+        }
+        
+        scannerActive = true;
+        Quagga.start();
+        showNotification('Barcode scanner started', 'success');
+      });
+
+      // Handle barcode detection
+      Quagga.onDetected(function(result) {
+        if (!scannerActive) return;
+        
+        const code = result.codeResult.code;
+        resultElement.innerHTML = `
+          <div style="color: var(--success);">
+            <i class="fas fa-check-circle"></i> 
+            Barcode detected: ${code}
+          </div>
+          <button class="btn btn-primary" onclick="processScannedBarcode('${code}')" style="margin-top: 0.5rem;">
+            <i class="fas fa-cog"></i> Process This Shipment
+          </button>
+        `;
+        
+        // Stop scanner after detection
+        stopBarcodeScanner();
+      });
+    }
+
+    function stopBarcodeScanner() {
+      if (scannerActive) {
+        Quagga.stop();
+        scannerActive = false;
+        showNotification('Barcode scanner stopped', 'success');
+      }
+    }
+
+    function processScannedBarcode(barcode) {
+      // Find shipment by ID (barcode is the shipment ID)
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      const shipment = shipments.find(s => s.id === barcode);
+      
+      if (!shipment) {
+        showNotification('Shipment not found with this barcode', 'error');
+        return;
+      }
+      
+      // Show status update form for this shipment
+      showStatusMethod('manual');
+      document.getElementById('statusShipmentNo').value = shipment.shipmentNo;
+      
+      // Auto-select next logical status
+      const statusSelect = document.getElementById('newStatus');
+      const currentStatus = shipment.status;
+      
+      // Set next status based on current status
+      if (currentStatus === 'received') {
+        statusSelect.value = 'packed';
+      } else if (currentStatus === 'packed') {
+        statusSelect.value = 'intransit';
+      } else if (currentStatus === 'intransit') {
+        statusSelect.value = 'delivered';
+      }
+      
+      showNotification(`Shipment ${shipment.shipmentNo} loaded for status update`, 'success');
+    }
+
+    // Status Update Functions
+    function updateShipmentStatus() {
+      const shipmentNo = document.getElementById('statusShipmentNo').value.trim();
+      const newStatus = document.getElementById('newStatus').value;
+      const notes = document.getElementById('statusNotes').value.trim();
+
+      if (!shipmentNo) {
+        showNotification('Please enter a shipment number', 'error');
+        return;
+      }
+
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      const shipmentIndex = shipments.findIndex(s => s.shipmentNo === shipmentNo);
+
+      if (shipmentIndex === -1) {
+        showNotification('Shipment not found', 'error');
+        return;
+      }
+
+      // Update shipment status
+      shipments[shipmentIndex].status = newStatus;
+      
+      // Set delivered date if status is delivered
+      if (newStatus === 'delivered') {
+        shipments[shipmentIndex].deliveredDate = new Date().toISOString();
+      }
+      
+      // Add to status history
+      if (!shipments[shipmentIndex].statusHistory) {
+        shipments[shipmentIndex].statusHistory = [];
+      }
+      
+      shipments[shipmentIndex].statusHistory.push({
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+        notes: notes || `Status changed to ${newStatus}`
+      });
+
+      localStorage.setItem('shipments', JSON.stringify(shipments));
+      showNotification('Shipment status updated successfully!', 'success');
+      
+      // Clear form
+      document.getElementById('statusShipmentNo').value = '';
+      document.getElementById('statusNotes').value = '';
+      
+      // Reload all data
+      const updatedShipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      loadDashboardMetrics(updatedShipments);
+      loadReportData();
+      initCharts(updatedShipments);
+      updateQuickUpdateCounts();
+      updateStatusTimeline(updatedShipments);
+    }
+
+    // NEW: Update Status Timeline
+    function updateStatusTimeline(shipments) {
+      const timelineContainer = document.getElementById('statusTimeline');
+      const timelineSection = document.getElementById('shipmentTimeline');
+      
+      // Get recent status updates (last 10)
+      const allUpdates = [];
+      shipments.forEach(shipment => {
+        if (shipment.statusHistory) {
+          shipment.statusHistory.forEach(update => {
+            allUpdates.push({
+              ...update,
+              shipmentNo: shipment.shipmentNo,
+              customerName: shipment.customerName
+            });
+          });
+        }
+      });
+      
+      // Sort by timestamp (newest first)
+      allUpdates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      if (allUpdates.length === 0) {
+        timelineSection.style.display = 'none';
+        return;
+      }
+      
+      const recentUpdates = allUpdates.slice(0, 10);
+      
+      let timelineHTML = '';
+      recentUpdates.forEach(update => {
+        timelineHTML += `
+          <div class="timeline-item ${update.status}">
+            <div class="timeline-content ${update.status}">
+              <div class="timeline-title">
+                <span>${update.shipmentNo} - ${update.customerName}</span>
+                <span class="timeline-date">${timeAgo(update.timestamp)}</span>
+              </div>
+              <div>
+                <span class="shipment-status status-${update.status}">
+                  ${update.status.toUpperCase()}
+                </span>
+              </div>
+              <div class="timeline-desc">${update.notes}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      timelineContainer.innerHTML = timelineHTML;
+      timelineSection.style.display = 'block';
+    }
+
+    // Report Functions
+    function loadReportData() {
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      
+      // Calculate statistics
+      const totalShipments = shipments.length;
+      const receivedShipments = shipments.filter(s => s.status === 'received').length;
+      const packedShipments = shipments.filter(s => s.status === 'packed').length;
+      const inTransitShipments = shipments.filter(s => s.status === 'intransit').length;
+      const deliveredShipments = shipments.filter(s => s.status === 'delivered').length;
+      const cancelledShipments = shipments.filter(s => s.status === 'cancelled').length;
+      
+      // Update statistics display
+      document.getElementById('totalShipments').textContent = totalShipments;
+      document.getElementById('receivedShipments').textContent = receivedShipments;
+      document.getElementById('packedShipments').textContent = packedShipments;
+      document.getElementById('inTransitShipments').textContent = inTransitShipments;
+      document.getElementById('deliveredShipments').textContent = deliveredShipments;
+      document.getElementById('cancelledShipments').textContent = cancelledShipments;
+    }
+
+    function generateReport() {
+      const dateFrom = document.getElementById('reportDateFrom').value;
+      const dateTo = document.getElementById('reportDateTo').value;
+      
+      let shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      
+      // Apply date filters
+      if (dateFrom) {
+        shipments = shipments.filter(s => 
+          new Date(s.createdDate) >= new Date(dateFrom)
+        );
+      }
+      
+      if (dateTo) {
+        shipments = shipments.filter(s => 
+          new Date(s.createdDate) <= new Date(dateTo + 'T23:59:59')
+        );
+      }
+      
+      // Apply advanced filters
+      if (activeFilters.customer) {
+        shipments = shipments.filter(s => s.customerName === activeFilters.customer);
+      }
+      if (activeFilters.carrier) {
+        shipments = shipments.filter(s => s.carrier === activeFilters.carrier);
+      }
+      if (activeFilters.status) {
+        shipments = shipments.filter(s => s.status === activeFilters.status);
+      }
+      
+      const reportResults = document.getElementById('reportResults');
+      
+      if (shipments.length === 0) {
+        reportResults.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-chart-bar"></i></div>
+            <h3>No Shipments Found</h3>
+            <p>No shipments match the selected criteria</p>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = `
+        <div class="table-container">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>Shipment ID</th>
+                <th>Shipment No</th>
+                <th>Invoices</th>
+                <th>Customer Code</th>
+                <th>Customer Name</th>
+                <th>Status</th>
+                <th>Created Date</th>
+                <th>Delivered Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      shipments.forEach(shipment => {
+        let statusClass = 'status-received';
+        if (shipment.status === 'packed') statusClass = 'status-packed';
+        if (shipment.status === 'intransit') statusClass = 'status-intransit';
+        if (shipment.status === 'delivered') statusClass = 'status-delivered';
+        if (shipment.status === 'cancelled') statusClass = 'status-cancelled';
+        
+        html += `
+          <tr>
+            <td><strong>${shipment.id}</strong></td>
+            <td>${shipment.shipmentNo}</td>
+            <td>${shipment.invoices ? shipment.invoices.join(', ') : 'N/A'}</td>
+            <td>${shipment.customerCode}</td>
+            <td>${shipment.customerName}</td>
+            <td><span class="shipment-status ${statusClass}">${shipment.status.toUpperCase()}</span></td>
+            <td>${formatDateTime(shipment.createdDate)}</td>
+            <td>${shipment.deliveredDate ? formatDateTime(shipment.deliveredDate) : 'N/A'}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="quickViewShipment('${shipment.shipmentNo}')">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+          <p style="margin-top: 1rem; color: var(--text-light);">
+            Total: ${shipments.length} shipments
+          </p>
+        </div>
+      `;
+      
+      reportResults.innerHTML = html;
+      
+      // Update timeline with filtered shipments
+      updateStatusTimeline(shipments);
+    }
+
+    // NEW: Quick View Shipment
+    function quickViewShipment(shipmentNo) {
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      const shipment = shipments.find(s => s.shipmentNo === shipmentNo);
+      
+      if (!shipment) return;
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 1rem;
+      `;
+      
+      modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3>Shipment Details</h3>
+            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Shipment Number</label>
+              <input type="text" value="${shipment.shipmentNo}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <input type="text" value="${shipment.status.toUpperCase()}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Customer Name</label>
+              <input type="text" value="${shipment.customerName}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Customer Code</label>
+              <input type="text" value="${shipment.customerCode}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Created Date</label>
+              <input type="text" value="${formatDateTime(shipment.createdDate)}" readonly>
+            </div>
+            <div class="form-group">
+              <label>Delivered Date</label>
+              <input type="text" value="${shipment.deliveredDate ? formatDateTime(shipment.deliveredDate) : 'Not Delivered'}" readonly>
+            </div>
+          </div>
+          ${shipment.notes ? `
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Notes</label>
+              <textarea readonly style="width: 100%; padding: 0.5rem;">${shipment.notes}</textarea>
+            </div>
+          ` : ''}
+          <div style="margin-top: 1.5rem; text-align: right;">
+            <button class="btn btn-primary" onclick="loadShipmentForStatusUpdate('${shipment.shipmentNo}'); this.parentElement.parentElement.parentElement.parentElement.remove();">
+              <i class="fas fa-edit"></i> Update Status
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+
+    // NEW: Print Report
+    function printReport() {
+      const printWindow = window.open('', '_blank');
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      
+      let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Shipment Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #333; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #007bff; color: white; }
+            .status { padding: 2px 6px; border-radius: 10px; font-size: 0.8em; }
+          </style>
+        </head>
+        <body>
+          <h1>Shipment Report</h1>
+          <p>Generated: ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Shipment ID</th>
+                <th>Shipment No</th>
+                <th>Customer Name</th>
+                <th>Status</th>
+                <th>Created Date</th>
+                <th>Delivered Date</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      shipments.forEach(shipment => {
+        html += `
+          <tr>
+            <td>${shipment.id}</td>
+            <td>${shipment.shipmentNo}</td>
+            <td>${shipment.customerName}</td>
+            <td>${shipment.status.toUpperCase()}</td>
+            <td>${formatDateTime(shipment.createdDate)}</td>
+            <td>${shipment.deliveredDate ? formatDateTime(shipment.deliveredDate) : 'N/A'}</td>
+          </tr>
+        `;
+      });
+      
+      html += `
+            </tbody>
+          </table>
+          <p style="margin-top: 20px;">Total Shipments: ${shipments.length}</p>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    // Export Shipment Report to Excel
+    function exportShipmentReport() {
+      const dateFrom = document.getElementById('reportDateFrom').value;
+      const dateTo = document.getElementById('reportDateTo').value;
+      
+      let shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      
+      // Filter by date if provided
+      if (dateFrom) {
+        shipments = shipments.filter(s => 
+          new Date(s.createdDate) >= new Date(dateFrom)
+        );
+      }
+      
+      if (dateTo) {
+        shipments = shipments.filter(s => 
+          new Date(s.createdDate) <= new Date(dateTo + 'T23:59:59')
+        );
+      }
+      
+      // Apply advanced filters
+      if (activeFilters.customer) {
+        shipments = shipments.filter(s => s.customerName === activeFilters.customer);
+      }
+      if (activeFilters.carrier) {
+        shipments = shipments.filter(s => s.carrier === activeFilters.carrier);
+      }
+      if (activeFilters.status) {
+        shipments = shipments.filter(s => s.status === activeFilters.status);
+      }
+      
+      if (shipments.length === 0) {
+        showNotification('No data to export', 'error');
+        return;
+      }
+
+      // Prepare data for export
+      const exportData = shipments.map(shipment => ({
+        'Shipment ID': shipment.id,
+        'Shipment Number': shipment.shipmentNo,
+        'Invoices': shipment.invoices ? shipment.invoices.join(', ') : 'N/A',
+        'Customer Code': shipment.customerCode,
+        'Customer Name': shipment.customerName,
+        'Status': shipment.status.toUpperCase(),
+        'Created Date': formatDateTime(shipment.createdDate),
+        'Delivered Date': shipment.deliveredDate ? formatDateTime(shipment.deliveredDate) : 'N/A',
+        'Carrier': shipment.carrier || 'N/A',
+        'Shipping Cost': `${shipment.shippingCost || '0'} ${shipment.shippingCurrency || ''}`,
+        'Estimated Delivery': shipment.estDelivery ? formatDateTime(shipment.estDelivery) : 'Not set',
+        'Packer': shipment.packerName || 'N/A',
+        'Deliverer': shipment.deliverName || 'N/A',
+        'Sales Rep': shipment.salesName || 'N/A'
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipment Report');
+      
+      // Generate filename with date range
+      let filename = 'shipment_report';
+      if (dateFrom || dateTo) {
+        filename += '_' + (dateFrom || 'start') + '_to_' + (dateTo || 'end');
+      }
+      filename += '.xlsx';
+      
+      XLSX.writeFile(workbook, filename);
+      showNotification('Shipment report exported successfully!', 'success');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check authentication
+      checkAuth();
+      
+      // Initialize data
+      initializeReportsData();
+      
+      // Set default report dates (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      document.getElementById('reportDateFrom').value = thirtyDaysAgo.toISOString().slice(0, 10);
+      document.getElementById('reportDateTo').value = new Date().toISOString().slice(0, 10);
+      
+      // Load shipments data
+      const shipments = JSON.parse(localStorage.getItem('shipments') || '[]');
+      
+      // Initialize dashboard
+      loadDashboardMetrics(shipments);
+      loadReportData();
+      initCharts(shipments);
+      populateCustomerFilter(shipments);
+      updateQuickUpdateCounts();
+      updateStatusTimeline(shipments);
+      
+      // Update select options for current language
+      updateSelectOptions();
+      
+      // Initialize language
+      changeLanguage('en');
+      
+      // Set active navigation
+      setActiveNav();
+    });
+
+    function setActiveNav() {
+      const currentPage = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === currentPage) {
+          link.classList.add('active');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+[file content end]
